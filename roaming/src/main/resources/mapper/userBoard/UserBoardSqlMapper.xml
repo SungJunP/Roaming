@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.rm.roaming.userboard.mapper.UserBoardSqlMapper">
+	
+	<!-- 쿠폰리스트 조회 -->
+	<select id="selectCouponList" resultType="com.rm.roaming.dto.CouponDto">
+		SELECT *
+		FROM coupon
+		WHERE coupon_enddate > sysdate
+		and coupon_count > 0
+		and coupon_deleted = 'N'
+		ORDER BY id DESC
+	</select>
+	
+	
+	<!--  내 쿠폰함 등록 -->
+	<insert id="insertUserCoupon">
+    INSERT INTO userCoupon VALUES(
+        userCoupon_seq.nextval,
+        #{user_id},
+        #{coupon_id},
+        'N',
+        SYSDATE
+    )
+	</insert>
+	
+	<!-- 내 쿠폰함 사용가능 쿠폰 조회 -->
+	<select id="selectUserCouponAll" resultType="com.rm.roaming.dto.UserCouponDto">
+	<![CDATA[
+		SELECT t2.* FROM (
+			SELECT t1.*, ROWNUM rnum FROM(
+				SELECT uc.*
+					FROM userCoupon uc
+					JOIN coupon c ON uc.coupon_id = c.id
+					WHERE uc.status = 'N'
+					  AND c.coupon_deleted = 'N'
+					  AND uc.user_id = #{userId}
+					ORDER BY uc.coupon_id DESC
+				)t1
+			)t2
+		WHERE t2.rnum >= ((#{page}-1) * 3) + 1 AND t2.rnum <= #{page} * 3
+		]]>
+	</select>
+	
+	<!-- 내 쿠폰함 사용가능 쿠폰 조회 페이징 -->
+	<select id="UserCouponCount" resultType="int">
+		SELECT COUNT(*) FROM userCoupon
+		WHERE user_id = #{userId}
+	</select>
+	
+	<!-- 내 쿠폰함 사용완료 쿠폰 조회 -->
+	<select id="selectNotExistUserCouponAll" resultType="com.rm.roaming.dto.UserCouponDto"> 
+	<![CDATA[
+		SELECt t2.* FROM (
+			SELECT t1.*, ROWNUM rnum FROM(
+				SELECT uc.*
+					FROM userCoupon uc
+					JOIN coupon c ON uc.coupon_id = c.id
+					WHERE uc.status = 'Y'
+					  OR c.coupon_deleted = 'Y'
+					  AND uc.user_id = #{userId}
+					ORDER BY uc.coupon_id DESC
+				)t1
+			)t2
+		WHERE t2.rnum >= ((#{pageNum}-1) * 3) + 1 AND t2.rnum <= #{pageNum} * 3
+		]]>
+	</select>
+	
+	<!-- 내 쿠폰함 사용완료 쿠폰 조회 페이징 -->
+	<select id="notExistUserCouponCount" resultType="int">
+		SELECT COUNT(*) FROM userCoupon
+		WHERE user_id = #{userId}
+	</select>
+
+	<!-- 회원가입시 기본그룹 자동등록 -->
+	<insert id="insertFriendGroupBasic">
+		INSERT INTO friend_group VALUES(
+        friend_group_seq.nextval,
+        #{user_id},
+        '기본그룹',
+        SYSDATE
+    )
+	</insert>
+
+	<!-- 그룹 페이지 모든 그룹 조회 -->
+	<select id="selectFriendGroupAll" resultType="com.rm.roaming.dto.FriendGroupDto">
+		SELECT *
+		FROM friend_group
+		WHERE user_id = #{user_id}
+		ORDER BY id
+	</select>
+	
+	<!-- 그룹 페이지 특정 그룹 조회 -->
+	<select id="selectByFriendGroupId" resultType="com.rm.roaming.dto.FriendGroupDto">
+		SELECT  *
+		FROM friend_group
+		WHERE id = #{id}
+	</select>
+	
+	<!-- 그룹 페이지 특정 그룹 삭제 -->
+	<delete id="deleteFriendGroup">
+		DELETE FROM friend_group WHERE id = #{id}
+	</delete>
+	
+	<!-- 그룹 페이지 특정 그룹 그룹명 수정 -->
+	<update id="updateFriendGroup">
+		UPDATE friend_group
+			SET group_name = #{group_name}
+			WHERE id = #{id}
+	</update>
+	
+	
+	
+	
+	<!-- 그룹 등록 -->
+	<insert id="insertFriendGroup">
+		INSERT INTO friend_group VALUES(
+	        friend_group_seq.nextval,
+	        #{user_id},
+	        #{group_name},
+	        SYSDATE
+    )
+	</insert>
+	
+	<!-- 친구 요청 등록 -->
+	<insert id="insertFriendRequest">
+		INSERT INTO friendRequest VALUES(
+			friendRequest_seq.nextval,
+			#{send_id},
+			#{receive_id},
+			'R',
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- status = 'R' 인 모든 친구 요청 조회 -->
+	<select id="selectFriendRequestAll" resultType="com.rm.roaming.dto.FriendRequestDto">
+		SELECT *
+		FROM friendRequest
+		WHERE status = 'R' AND receive_id = #{id}
+		ORDER BY id DESC
+	</select>
+	
+	<!-- 친구 요청 상태 업데이트 수락/거절 -->
+	<update id="updateFriendRequestStatus">
+		UPDATE friendRequest
+		SET status = #{status}
+		where id = #{id}
+	</update>
+	
+	<!-- 특정 회원 아이디의 기본그룹 id를 찾아오기 -->
+	<select id="getDefaultFriendGroupIdByUserId" resultType="int">
+		SELECT fg.id FROM friend_group fg
+		WHERE fg.user_id = #{user_id}
+		AND fg.group_name = '기본그룹'	
+	</select>
+	
+	<!-- 친구 맺기 -->
+	<insert id="insertFriend">
+   	 INSERT INTO friend VALUES(
+			friend_seq.nextval,
+			#{group_id},
+			#{user_id},
+			#{friend_id},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 유저 조회 -->
+	<select id="selectUserId" resultType="com.rm.roaming.dto.UserDto">
+		select * from rm_user where id = #{user_id}
+	</select>
+	
+	<!-- 그룹 유저 아이디 조회 -->
+	<select id="selectFriendGroupUserId" resultType="com.rm.roaming.dto.FriendGroupDto">
+		select * from friend_group where user_id = #{user_id}
+	</select>
+
+	<!-- 친구 그룹 아이디 조회 -->
+	<select id="selectFriendGroupId" resultType="com.rm.roaming.dto.FriendDto">
+		select * from friend where group_id = #{group_id}
+	</select>
+	
+	<!-- 친구 페이지 특정 친구 조회 -->
+	<select id="selectByFriendId" resultType="com.rm.roaming.dto.FriendDto">
+		SELECT  *
+		FROM friend
+		WHERE id = #{id}
+	</select>
+	
+	<!-- 친구 페이지 특정 친구 소속그룹 수정 -->
+	<update id="updateFriendMove">
+		UPDATE friend
+			SET group_id = #{group_id}
+			WHERE id = #{id}
+	</update>
+	
+	<!-- 그룹 group_name -->
+	<select id="selectByFriendGroupName" parameterType="String" resultType="com.rm.roaming.dto.FriendGroupDto">
+		SELECT * FROM friend_group WHERE group_name = #{group_name}
+	</select>
+	
+	
+	
+	<!-- 그룹 페이지 특정 친구 삭제 -->
+	<delete id="deleteFriend">
+	 DELETE FROM friend
+		WHERE id = #{id} OR reg_date IN (
+	    SELECT reg_date
+	    FROM friend
+	    WHERE id = #{id}
+	)
+	</delete>
+
+	<!-- 상품리스트 조회 -->
+	<select id="selectItemList" resultType="com.rm.roaming.dto.ItemDto">
+		SELECT *
+		FROM item
+		ORDER BY id DESC
+	</select>
+	
+	<!-- 특정 상품 조회 -->
+	<select id="selectByItemId" resultType="com.rm.roaming.dto.ItemDto">
+		SELECT  *
+		FROM item
+		WHERE id = #{id}
+	</select>
+	
+	<!-- 특정 상품 이미지 조회 -->
+	<select id="selectItemImageById" resultType="com.rm.roaming.dto.ItemImageDto">
+		SELECT * 
+		FROM item_image
+		WHERE item_id = #{id}
+	</select>
+	
+	<!-- 배송지, 상품구매 배송지 동시 Insert -->
+	<select id="createAddressPk" resultType="int">
+		select user_address_seq.nextval from dual
+	</select>
+	
+	<!-- 배송지 등록 -->
+	<insert id="insertUserAddress">
+		INSERT INTO user_address VALUES(
+        #{id},
+        #{user_id},
+        #{address}
+    )
+	</insert>
+	
+	<!-- 배송지 조회 -->
+	<select id="selectUserAddressId" resultType="com.rm.roaming.dto.UserAddressDto">
+		SELECT *
+		FROM user_address
+		WHERE id = #{id}
+	</select>
+	
+	<!-- 상품 구매 등록 -->
+	<insert id="insertItemBuy">
+		INSERT INTO item_buy VALUES(
+        item_buy_seq.nextval,
+        #{item_id},
+        #{address_id},
+        1,
+        '결제완료',
+        SYSDATE
+    )
+	</insert>
+	
+	
+	<!-- 포인트 사용내역 등록 -->
+	<insert id="insertPointStatus">
+		INSERT INTO point (id, user_id, point, status, context, reg_date)
+			SELECT
+			    point_seq.nextval,
+			    #{user_id},
+			    i.item_price,
+			    '사용',
+			    '구매',
+			    SYSDATE
+			FROM
+			    item i
+			WHERE
+			    i.id = #{id}
+	</insert>
+	
+	<!-- 상품리뷰 등록 -->
+	<insert id="insertItemReview">
+		INSERT INTO item_review VALUES(
+        item_review_seq.nextval,
+        #{item_buy_id},
+        #{context},
+        SYSDATE
+    )
+	</insert>
+	
+	<!-- 주문내역 조회 -->
+	<select id="selectByItemBuyList" resultType="com.rm.roaming.dto.ItemBuyDto">
+		SELECT ib.*
+			FROM item_buy ib
+			JOIN user_address ua ON ib.address_id = ua.id
+			WHERE ua.user_id = #{sessionUser}
+			ORDER BY ib.id DESC
+	</select>
+	
+	<!-- 상품리뷰 조회 -->
+	<select id="selectByItemReviewList" resultType="com.rm.roaming.dto.ReviewJoinDto">
+	SELECT ir.id, ud.user_id, ru.user_name, ir.CONTEXT, ir.reg_date FROM item i INNER JOIN item_buy ib ON i.id = ib.item_id INNER JOIN ITEM_REVIEW ir ON ib.id = ir.item_buy_id
+INNER JOIN user_address ud ON ib.address_id = ud.id INNER JOIN rm_user ru ON ru.id = ud.user_id WHERE i.id = #{id} ORDER BY ir.id desc 
+	</select>
+	
+	<select id="selectByItemBuyId" resultType="com.rm.roaming.dto.ItemBuyDto">
+		SELECT  *
+		FROM item_buy
+		WHERE id = #{id}
+	</select>
+	
+	
+	
+	
+	
+
+	<select id="selectHotelCategoryByHotelCategoryId" resultType="com.rm.roaming.dto.HotelCategoryDto">
+		SELECT * FROM hotel_category WHERE id = #{id}
+	</select>
+	<select id="selectMinPriceByHotelId" resultType="com.rm.roaming.dto.RoomGroupDto">
+		SELECT COALESCE(min(price), 0) AS price
+		FROM room_group
+		WHERE hotel_id = #{hotel_id}
+	</select>
+	<select id="selectHotelListByStar" resultType="com.rm.roaming.dto.HotelDto">
+	SELECT h.* 
+	FROM hotel h
+	<if test="orderByNumber == 1">
+	LEFT JOIN (
+	    SELECT rg.hotel_id, COUNT(*) AS review_count
+	    FROM hotel_review hr
+	    INNER JOIN reserve r ON hr.reserve_id = r.id
+	    INNER JOIN room_group rg ON r.room_group_id = rg.id
+	    GROUP BY rg.hotel_id
+	) r ON h.id = r.hotel_id
+	</if>
+	<if test="orderByNumber == 2">
+	LEFT JOIN (
+	    SELECT rg.hotel_id, COALESCE(ROUND(avg(star), 2), 0) as star
+	    FROM hotel_review hr
+	    INNER JOIN reserve r ON hr.reserve_id = r.id
+	    INNER JOIN room_group rg ON r.room_group_id = rg.id
+	    GROUP BY rg.hotel_id
+	) r ON h.id = r.hotel_id
+	</if>
+	<if test="orderByNumber == 3">
+		INNER JOIN (
+		    SELECT hotel_id, MIN(price) AS price
+		    FROM room_group
+		    GROUP BY hotel_id
+		) rg ON h.id = rg.hotel_id
+	</if>
+	<if test="orderByNumber == 4">
+		INNER JOIN (
+		    SELECT hotel_id, MIN(price) AS price
+		    FROM room_group
+		    GROUP BY hotel_id
+		) rg ON h.id = rg.hotel_id
+	</if>
+	WHERE 
+	    <choose>
+	        <when test="category == '전체'">
+	            1=1
+	        </when>
+	        <otherwise>
+	            h.hotel_category_id IN (SELECT id FROM hotel_category WHERE category LIKE '%' || #{category} || '%')
+	        </otherwise>
+	    </choose>
+	    AND
+	        <if test="star == 0">
+	            1=1
+	        </if>
+	        <if test="star==2">h.hotel_category_id IN (SELECT id FROM hotel_category WHERE category LIKE '%' || '2' || '%' OR category LIKE '%' || '3' || '%' OR category LIKE '%' || '4' || '%' OR category LIKE '%' || '5' || '%')</if>
+	        <if test="star==3">h.hotel_category_id IN (SELECT id FROM hotel_category WHERE category LIKE '%' || '3' || '%' OR category LIKE '%' || '4' || '%' OR category LIKE '%' || '5' || '%')</if>
+	        <if test="star==4">h.hotel_category_id IN (SELECT id FROM hotel_category WHERE category LIKE '%' || '4' || '%' OR category LIKE '%' || '5' || '%')</if>
+	        <if test="star==5">h.hotel_category_id = (SELECT id FROM hotel_category WHERE category LIKE '%' || '5' || '%')</if>
+	    <if test="checkBoxValues != null and checkBoxValues.length > 0">
+	        AND h.id IN (
+	            SELECT hotel_id
+	            FROM hotel_link_syscategory
+	            WHERE syscategory_id IN
+	                <foreach item="id" collection="checkBoxValues" open="(" separator="," close=")">
+	                    #{id}
+	                </foreach>
+	            GROUP BY hotel_id
+	            HAVING COUNT(DISTINCT syscategory_id) = ${checkBoxValues.length}
+	        )
+	    </if>
+	    AND h.id IN (
+	    <![CDATA[
+		SELECT rg.hotel_id
+		FROM room_group rg
+		LEFT JOIN (
+		    SELECT room_group_id, COUNT(*) AS reserved_rooms
+		    FROM reserve
+		   WHERE (start_date >=  TO_DATE(#{startDate}, 'yy/MM/dd') AND start_date < TO_DATE(#{endDate}, 'yy/MM/dd'))
+   			OR (end_date > TO_DATE(#{startDate}, 'yy/MM/dd') AND end_date <= TO_DATE(#{endDate}, 'yy/MM/dd'))
+		    GROUP BY room_group_id
+		) r ON rg.id = r.room_group_id
+		INNER JOIN (
+		    SELECT room_group_id, COUNT(*) AS total_rooms
+		    FROM room
+		    GROUP BY room_group_id
+		) rm ON rg.id = rm.room_group_id
+		WHERE COALESCE(r.reserved_rooms, 0) < rm.total_rooms  AND fixed_number >= #{fixed_number}
+		]]> 
+	    )<if test="loc != ''"> AND h.hotel_loc Like '%' || #{loc} || '%' </if>
+	 <if test="orderByNumber == 1"> ORDER BY COALESCE(r.review_count, 0) DESC </if>
+	 <if test="orderByNumber == 2"> ORDER BY COALESCE(r.star, 0) DESC </if>
+	 <if test="orderByNumber == 3"> ORDER BY rg.price </if>
+	 <if test="orderByNumber == 4"> ORDER BY rg.price DESC </if>
+	</select>
+	<select id="selectHotelInfoById" resultType="com.rm.roaming.dto.HotelDto">
+		SELECT * FROM hotel WHERE id = #{id}
+	</select>
+	<select id="selectHotelLinkSysCategoryByHotelId" resultType="com.rm.roaming.dto.HotelLinkSyscategoryDto">
+		SELECT * FROM hotel_link_syscategory WHERE hotel_id = #{hotel_id}
+	</select>
+	<select id="selectStarAvgByHotelId" resultType="java.lang.Double">
+		SELECT COALESCE(ROUND(avg(star), 1), 0) FROM hotel_review WHERE reserve_id IN (SELECT id FROM reserve WHERE room_group_id IN (SELECT id FROM room_group WHERE hotel_id = #{hotel_id}))
+	</select>
+	<select id="selectStarCountByHotelId" resultType="int">
+		SELECT COUNT(*) FROM hotel_review WHERE reserve_id IN (SELECT id FROM reserve WHERE room_group_id IN (SELECT id FROM room_group WHERE hotel_id = #{hotel_id}))
+	</select>
+	<select id="selectHotelSysCategoryById" resultType="com.rm.roaming.dto.HotelSyscategoryDto">
+		SELECT * FROM hotel_syscategory WHERE id = #{id}
+	</select>
+	<select id="selectCustomCategoryByHotelId" resultType="com.rm.roaming.dto.CustomCategoryDto">
+		SELECT * FROM custom_category WHERE room_group_id IN (SELECT id FROM room_group WHERE hotel_id = #{hotel_id})
+	</select>
+	<select id="selectCustomCategoryByGroupId" resultType="com.rm.roaming.dto.CustomCategoryDto">
+		SELECT * FROM custom_category WHERE room_group_id = #{room_group_id}
+	</select>
+	<select id="selectViewList" resultType="com.rm.roaming.dto.RoomViewDto">
+		SELECT * FROM room_view
+	</select>
+	<select id="selectViewByviewID" resultType="com.rm.roaming.dto.RoomViewDto">
+		SELECT * FROM room_view WHERE id=  #{id}
+	</select>
+	<select id="selectRoomGroupImgByHotelId" resultType="com.rm.roaming.dto.RoomGroupImgDto">
+		SELECT * FROM room_group_img WHERE room_group_id IN (SELECT id FROM room_group WHERE hotel_id=#{hotel_id})
+	</select>
+	<select id="selectRoomGroupByHotelId" resultType="com.rm.roaming.dto.RoomGroupDto">
+		SELECT * FROM room_group WHERE hotel_id = #{hotel_id}
+	</select>
+	<select id="selectRoomGroupBySearch" resultType="com.rm.roaming.dto.RoomGroupDto">
+	<![CDATA[
+			SELECT rg.*
+		FROM room_group rg
+		LEFT JOIN (
+		    SELECT room_group_id, COUNT(*) AS reserved_rooms
+		    FROM reserve
+		   WHERE (start_date >= TO_DATE(#{startDate}, 'yy/MM/dd') AND start_date < TO_DATE(#{endDate}, 'yy/MM/dd'))
+   			OR (end_date > TO_DATE(#{startDate}, 'yy/MM/dd') AND end_date <= TO_DATE(#{endDate}, 'yy/MM/dd'))
+		    GROUP BY room_group_id
+		) r ON rg.id = r.room_group_id
+		INNER JOIN (
+		    SELECT room_group_id, COUNT(*) AS total_rooms
+		    FROM room
+		    GROUP BY room_group_id
+		) rm ON rg.id = rm.room_group_id
+		WHERE COALESCE(r.reserved_rooms, 0) < rm.total_rooms  AND fixed_number >= #{fixed_number} AND rg.hotel_id = #{hotel_id}
+		]]> 
+		<if test="view_id != 0">
+		 AND view_id=#{view_id}
+		</if>
+	</select>
+	<select id="selectRoomGroupImgByRoomGroupId" resultType="com.rm.roaming.dto.RoomGroupImgDto">
+		SELECT* FROM room_group_img WHERE room_group_id = #{room_group_id}
+	</select>
+	
+	
+	<select id="selectRoomGroupById" resultType="com.rm.roaming.dto.RoomGroupDto">
+		SELECT * FROM room_group WHERE id = #{id}
+	</select>
+	<select id="selectGroupPlusOptionByGroupId" resultType="com.rm.roaming.dto.GroupPlusOptionDto">
+		SELECT * FROM group_plus_option WHERE room_group_id = #{room_group_id}
+	</select>
+	
+	<select id="createReservePk" resultType="int">
+		SELECT reserve_seq.nextval FROM dual
+	</select>
+	<insert id="insertReserve">
+		INSERT INTO reserve VALUES(
+			#{id},
+			#{user_id},
+			#{room_group_id},
+			#{final_price},
+			#{start_date},
+			#{end_date},
+			<if test="mycoupon_id == null">
+			NULL,
+			</if>
+			<if test="mycoupon_id != null">
+			#{mycoupon_id},
+			</if>
+			#{tid},
+			SYSDATE
+		)	
+	</insert>
+	<insert id="insertOptionReserve">
+	INSERT INTO option_reserve VALUES(
+		option_reserve_seq.nextval,
+		#{reserve_id},
+		#{option_id}
+		)
+	</insert>
+	<select id="selectReserveByTid" resultType="com.rm.roaming.dto.ReserveDto">
+		SELECT * FROM reserve WHERE tid = #{tid} 
+	</select>
+	
+	<select id="selectReserveListByUserId" resultType="com.rm.roaming.dto.ReserveDto">
+		SELECT * FROM reserve WHERE user_id = #{user_id} 
+		<if test="filter == 1">
+			AND	<![CDATA[ TO_DATE(start_date, 'YY/MM/DD') >= TRUNC(SYSDATE) ]]>
+		</if>
+		<if test="filter == 2">
+			AND	<![CDATA[ TO_DATE(start_date, 'YY/MM/DD') < TRUNC(SYSDATE) ]]>
+		</if>	
+	</select>
+	
+	<select id="selectOptionReserveList" resultType="com.rm.roaming.dto.OptionReserveDto">
+		SELECT * FROM option_reserve WHERE reserve_id = #{reserve_id}
+	</select>
+	<select id="selectGroupPlusOptionInfo" resultType="com.rm.roaming.dto.GroupPlusOptionDto">
+		SELECT * FROM group_plus_option WHERE id = #{id}
+	</select>
+	
+	<select id="selectCountReviewByReserveId" resultType="int">
+		SELECT COUNT(*) FROM hotel_review WHERE reserve_id = #{reserve_id}
+	</select>
+	<insert id="insertReview">
+		INSERT INTO hotel_review VALUES(
+			hotel_review_seq.nextval,
+			#{reserve_id},
+			#{content},
+			#{star},
+			#{review_img_link},
+			SYSDATE
+		)
+	</insert>
+	<select id="selectReviewListByHotelId" resultType="com.rm.roaming.dto.HotelReviewDto">
+		SELECT * FROM hotel_review WHERE reserve_id IN
+		 (SELECT id FROM reserve WHERE room_group_id 
+		 IN (SELECT id FROM room_group WHERE hotel_id = #{hotel_id})
+		 )
+	</select>
+	<select id="selectReserveById" resultType="com.rm.roaming.dto.ReserveDto">
+		SELECT * FROM reserve WHERE id = #{id}
+	</select>
+	<select id="selectUserById" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * FROM rm_user WHERE id = #{id}
+	</select>
+	
+	<select id="selectMyHotelLikeCount" resultType="int">
+		SELECT count(*) FROM hotel_like WHERE hotel_id = #{hotel_id} AND user_id = #{user_id}
+	</select>
+	<select id="selectTotalHotelLikeCount" resultType="int">
+		SELECT count(*) FROM hotel_like WHERE hotel_id = #{hotel_id}
+	</select>
+	
+	<insert id="insertHotelLike">
+		INSERT INTO hotel_like VALUES(
+			hotel_like_seq.nextval,
+			#{user_id},
+			#{hotel_id}
+		)
+	</insert>
+	<delete id="deleteHotelLike">
+		DELETE hotel_like WHERE hotel_id =#{hotel_id} AND user_id = #{user_id}
+	</delete>
+	<select id="selectLikeHotelList" resultType="com.rm.roaming.dto.HotelDto">
+		SELECT * FROM hotel WHERE id IN (SELECT hotel_id FROM hotel_like WHERE user_id =#{user_id})
+	</select>
+</mapper>

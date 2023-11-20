@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rm.roaming.usercsboard.mapper.UserCsSqlMapper">
+	
+	<select id = "createQaBoardPk" resultType="int">
+		select qa_board_seq.nextval from dual
+	</select>
+	
+	<insert id="insertQaContent">
+		insert into qa_board values(
+			#{id},
+			#{user_id},
+			null,
+			#{qa_category_id},
+			#{qa_title},
+			#{qa_content},
+			0,
+			#{qa_secret},
+			sysdate,
+			0,
+			null,
+			null
+		)
+	</insert>
+	
+	<insert id="insertQaBoardImage">
+		insert into qa_board_image values(
+			qa_board_image_seq.nextval,
+			#{qa_board_id},
+			#{image_link}
+		)
+	</insert>
+	
+	<!-- xml에서 꺽쇠>=,<= 자체가 문법<>이 되서 따로 처리해줘야함. <![CDATA[]]>안은 무조건 문자로 인지.-->
+	<select id="selectAllQaBoard" resultType="com.rm.roaming.dto.QaBoardDto">
+		select q2.* from(
+   			select q1.*, rownum rnum from(
+				select qa.*
+				from qa_board qa
+				inner join rm_user us on us.id = qa.user_id
+				where 1=1
+				<if test="searchType != null and searchWord !=null">
+					<choose>
+						<when test="searchType == 'qa_title'">
+							and qa.qa_title like '%' || #{searchWord} || '%'
+						</when>
+						<when test="searchType == 'qa_content'">
+							and qa.qa_content like '%' || #{searchWord} || '%'
+						</when>
+						<when test="searchType == 'user_name'">
+							and us.user_name like '%' || #{searchWord} || '%'
+						</when>
+					</choose>
+				</if>
+				order by qa.id desc
+   			) q1
+		)q2
+		<![CDATA[
+		where q2.rnum >= ((#{page}-1)*5) + 1 and q2.rnum <= #{page}*5
+		]]>	
+	</select>
+	
+	<select id="getQaBoardCount" resultType="int">
+		SELECT count(*) 
+		FROM qa_board qa INNER JOIN 
+		rm_user us on qa.user_id = us.id
+		<if test="searchType != null and searchWord !=null">
+			<choose>
+				<when test="searchType == 'qa_title'">
+					and qa.qa_title like '%' || #{searchWord} || '%'
+				</when>
+				<when test="searchType == 'qa_content'">
+					and qa.qa_content like '%' || #{searchWord} || '%'
+				</when>
+				<when test="searchType == 'user_name'">
+					and us.user_name like '%' || #{searchWord} || '%'
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="selectQaBoardByID" resultType="com.rm.roaming.dto.QaBoardDto">
+		select * from qa_board
+		where id = #{id}
+	</select>
+	
+	<select id="selectImagesById" resultType="com.rm.roaming.dto.QaBoardImageDto">
+		select * from qa_board_image
+		where qa_board_id = #{id}
+	</select>
+	
+	<select id="selectCategoryById" resultType="com.rm.roaming.dto.QaCategoryDto">
+		select * from qa_category
+		where id=#{category_id}
+	</select>
+	
+	<select id="selectAdminByid" resultType="com.rm.roaming.dto.AdminDto">
+		select * from admin
+		where id = #{adminId}
+	</select>
+	
+	<select id ="selectAllCategory" resultType="com.rm.roaming.dto.QaCategoryDto">
+		select * from qa_category
+	</select>
+	
+	<update id="increaseQaReadCount">
+		update qa_board 
+		set qa_read_count = qa_read_count + 1
+		where id = #{id}
+	</update>
+	
+	<select id="selectQaRecommendById" resultType="com.rm.roaming.dto.QaRecommendDto">
+		select * from qa_recommend
+		where user_id = #{user_id} and qa_board_id = #{qa_board_id}
+	</select>
+	
+	<insert id="insertQaRecommend">
+		insert into qa_recommend values(
+			qa_recommend_seq.nextval,
+			#{user_id},
+			#{qa_board_id},
+			'Y'
+		)
+	</insert>
+	
+	<update id="increaseQaRecommendCount">
+		update qa_board
+		set qa_recommend_count = qa_recommend_count + 1
+		where id = #{id}	
+	</update>
+	
+	<select id ="selectBestFive" resultType="com.rm.roaming.dto.QaBoardDto">
+		select r2.* from (
+    		select r1.*, rownum rnum from (
+       	 		select * from qa_board order by qa_recommend_count desc
+        	) r1
+	    ) r2
+	    <![CDATA[
+		where rnum >=1 and rnum <=5
+		]]>
+	</select>
+	
+	<update id="updateQaBoardById">
+		update qa_board 
+		set qa_category_id = #{qa_category_id}, qa_title=#{qa_title}, 
+		qa_content=#{qa_content}, qa_secret=#{qa_secret}
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteQaBoardById">
+		delete from qa_board 
+		where id=#{id}
+	</delete>
+	
+	<select id="recentQaBoardById" resultType="int">
+		select To_DATE(sysdate, 'YYYY-MM-DD') - To_DATE(qa_reg_date, 'YYYY-MM-DD') 
+		from qa_board
+		where id = #{id}
+	</select>
+	
+</mapper>

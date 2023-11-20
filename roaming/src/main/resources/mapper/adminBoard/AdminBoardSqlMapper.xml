@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.rm.roaming.adminboard.mapper.AdminBoardSqlMapper">
+
+	<!-- item PK 생성 -->
+	<select id="createPk" resultType="int">
+		SELECT item_seq.nextval FROM dual
+	</select>
+
+	<!-- 쿠폰 생성 -->
+	<insert id="insertCoupon">
+		INSERT INTO coupon VALUES(
+				coupon_seq.nextval,
+				#{admin_id},
+				#{coupon_name},
+				#{coupon_context},
+				#{coupon_discount},
+				#{coupon_image},
+				#{coupon_count},
+				#{coupon_startdate},
+				#{coupon_enddate},
+				#{coupon_issue_start},
+				#{coupon_issue_end},
+				'N',
+				SYSDATE
+			)
+	</insert>
+
+	<!-- 사용가능한 쿠폰 조회 -->
+	<select id="selectCouponAll" resultType="com.rm.roaming.dto.CouponDto">
+		<![CDATA[
+		SELECT t2.* FROM (
+			SELECT t1.*, ROWNUM rnum FROM(
+				SELECT c.* FROM coupon c
+				WHERE coupon_enddate > sysdate
+				and coupon_count > 0
+				and coupon_deleted = 'N'
+				ORDER BY id DESC
+			) t1
+		)t2
+		WHERE t2.rnum >= ((#{page}-1) * 3) + 1 AND t2.rnum <= #{page} * 3
+		]]>
+	</select>
+
+	<!-- 사용가능한 쿠폰 조회 페이징 -->
+	<select id="manageCouponCount" resultType="int">
+		SELECT COUNT(*) FROM coupon
+	</select>
+
+	<!-- 만료된 쿠폰 조회 -->
+	<select id="selectNotExistCouponAll" resultType="com.rm.roaming.dto.CouponDto"> 
+		<![CDATA[
+		SELECT t2.* FROM (
+			SELECT t1.*, ROWNUM rnum FROM(	
+				SELECT c.* FROM coupon c
+				WHERE coupon_enddate < sysdate 
+				or coupon_count = 0
+				or coupon_deleted = 'Y'
+				ORDER BY id DESC
+			)t1
+		)t2
+		WHERE t2.rnum >= ((#{pageNum}-1) * 3) + 1 AND t2.rnum <= #{pageNum} * 3
+		]]>
+	</select>
+
+	<!-- 만료된 쿠폰 조회 페이징 -->
+	<select id="notExistManageCouponCount" resultType="int">
+		SELECT COUNT(*) FROM coupon
+	</select>
+
+	<!-- 쿠폰 수량 차감 -->
+	<select id="decreaseCouponCount" resultType="int">
+	SELECT count(*) FROM userCoupon WHERE coupon_id = #{coupon_id}
+	</select>
+
+	<!-- 중복발급 금지 -->
+	<select id="selectNotDuplicate" resultType="int">
+	SELECT count(*) FROM userCoupon where coupon_id = #{coupon_id} and user_id = #{user_id}
+	</select>
+
+	<!-- 특정 쿠폰 조회 -->
+	<select id="selectByCouponId" resultType="com.rm.roaming.dto.CouponDto">
+		SELECT  *
+		FROM coupon
+		WHERE id = #{id}
+	</select>
+
+
+	<!-- 쿠폰 삭제 -->
+	<update id="deleteCoupon">
+			UPDATE coupon 
+				SET coupon_deleted = 'Y'
+				WHERE id = #{id}
+	</update>
+
+	<!--  쿠폰 수정 -->
+	<update id="updateCoupon">
+		UPDATE coupon 
+			SET coupon_name = #{coupon_name}, coupon_context = #{coupon_context}, 
+			discount = #{discount}, coupon_image = #{coupon_image}, coupon_count = #{coupon_count},periodOfUse = #{periodOfUse}
+			WHERE id = #{id}
+	</update>
+
+	<!-- 상품 등록 -->
+	<insert id="insertItem">
+		INSERT INTO item VALUES(
+				#{id},
+				#{admin_id},
+				#{category_id},
+				#{item_name},
+				#{item_context},
+				#{item_price},
+				#{item_thumbnail},
+				#{item_count},
+				SYSDATE
+			)	
+	</insert>
+	
+	<!-- 상품 상세이미지 등록 -->
+	<insert id="insertItemImage">
+		INSERT INTO item_image VALUES(
+			item_image_seq.nextval,
+			#{item_id},
+			#{image}
+		)
+	</insert>
+	
+	<!-- 상품 상세이미지 조회 -->
+	<select id="selectItemImageByItemId" resultType="com.rm.roaming.dto.ItemImageDto">
+		SELECT * FROM item_image
+		WHERE item_id = #{item_id}
+	</select>
+
+	<!-- 상품 카테고리 -->
+	<select id="selectByCategoryId" resultType="com.rm.roaming.dto.ItemCategoryDto">
+		SELECT * FROM item_category
+		ORDER BY id DESC
+	</select>
+	
+	<!-- 상품관리 조회  -->
+	<select id="selectItemAll" resultType="com.rm.roaming.dto.ItemDto">
+		SELECT * FROM item 
+		ORDER BY id DESC
+	</select>
+	
+	<!-- 상품 카테고리 ID  -->
+	<select id="selectByItemCategoryId" resultType="com.rm.roaming.dto.ItemCategoryDto">
+		SELECT * FROM item_category where id = #{id}
+	</select>
+
+	<!-- 상품 삭제 -->
+	<delete id="deleteItem">
+		DELETE FROM item WHERE id = #{id}
+	</delete>
+	
+	<!-- 상품 수정 -->
+	<update id="updateItem">
+		UPDATE item
+		SET item_name = #{item_name}, item_context = #{item_context}, 
+		item_price = #{item_price}, item_thumbnail = #{item_thumbnail}, item_count = #{item_count}, category_id = #{category_id}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 상품 이미지 수정-->
+	<update id="updateItemImage">
+		UPDATE item_image
+		SET image = #{image}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 특정 상품 조회 -->
+	<select id="selectByItemId" resultType="com.rm.roaming.dto.ItemDto">
+		SELECT *
+		FROM item
+		WHERE id = #{id}
+	</select>
+
+</mapper>

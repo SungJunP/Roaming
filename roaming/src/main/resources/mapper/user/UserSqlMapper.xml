@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rm.roaming.user.mapper.UserSqlMapper">
+
+	<!-- PK생성 테이블이 동시에 insert하기위해서 -->
+	<select id="createPk" resultType="int">
+		SELECT rm_user_seq.nextval FROM dual
+	</select>
+	
+	
+	<!-- 유저 고유ID -->
+	<select id="selectByUserId" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * FROM rm_user where id = #{id}
+	</select>
+
+	<!-- 회원가입 -->
+	<insert id="insertUser">
+		INSERT INTO rm_user VALUES(
+			#{id},
+			#{user_id},
+			#{user_pw},
+			#{user_name},
+			#{gender},
+			#{phone_number},
+			null,
+			#{email},
+			SYSDATE
+		)
+	</insert>
+
+	<!-- 로그인 -->
+	<select id="selectByUserIdAndPw" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * FROM rm_user WHERE user_id = #{user_id} AND user_pw = #{user_pw}
+	</select>
+
+	<!-- 유저 user_name -->
+	<select id="selectByUserName" parameterType="String" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * FROM rm_user WHERE user_name = #{user_name}
+	</select>
+
+	<!-- send_id인 user -->
+	<select id="selectBySendId" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * FROM rm_user where id = #{id}
+	</select>
+	
+	<!-- receive_id인 user -->
+	<select id="selectByReceiveId" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * FROM rm_user where id = #{id}
+	</select>
+	
+	<!-- 로그인 하면 포인트 획득 -->
+	<insert id="insertLoginPoint">
+		INSERT INTO point VALUES(
+			point_seq.nextval,
+			#{user_id},
+			'100000',
+			'획득',
+			'로그인',
+			SYSDATE
+		)
+	</insert>
+	
+	
+	
+	
+</mapper>

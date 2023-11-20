@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.rm.roaming.admincsboard.mapper.AdminCsSqlMapper">
+	
+	<update id="updateQaBoardAdminById">
+		update qa_board set admin_id=#{admin_id}, qa_comment_content=#{qa_comment_content}, 
+			qa_comment_reg_date= sysdate
+		where id = #{id}
+	</update>
+	
+	<select id="selectAdminQaBoardProgress" resultType="com.rm.roaming.dto.QaBoardDto">
+		select prog2.* from(
+    		select prog1.*, rownum rnum from (
+       			 select prog.* from qa_board prog
+       			 where qa_comment_content is null
+        		order by id desc
+   			) prog1
+		) prog2
+		<![CDATA[
+		where prog2.rnum >=((#{page}-1)*5) + 1 and prog2.rnum <= #{page}*5
+		]]>
+	</select>
+	
+	<select id="getProgressCount" resultType="int">
+		select count(*) from qa_board where qa_comment_content is null
+	</select>
+	
+	<select id="selectAdminQaBoardComplete" resultType="com.rm.roaming.dto.QaBoardDto">
+		select comp2.* from(
+		    select comp1.*, rownum rnum from (
+		        select comp.* from qa_board comp
+		        where qa_comment_content is not null
+		       	order by id desc
+		    ) comp1
+		) comp2
+		<![CDATA[
+		where comp2.rnum >= ((#{page}-1)*5) + 1 and comp2.rnum <= #{page}*5
+		]]>
+	</select>
+	
+	<select id="getCompleteCount" resultType="int">
+		select count(*) from qa_board where qa_comment_content is not null
+	</select>
+	
+	
+	
+</mapper>

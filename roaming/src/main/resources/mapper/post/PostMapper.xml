@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.rm.roaming.post.mapper.PostMapper">
+	
+	<select id="createPk" resultType="int">
+		SELECT travel_post_seq.nextval FROM DUAL 
+	</select>
+	
+	<!-- 게시글 등록 -->
+	<insert id="insertPost">
+	    INSERT INTO travel_post
+	    	 VALUES(
+		        #{id},
+		        #{create_id},
+		        #{title},
+		        #{content},
+		        #{day_start},
+		        #{day_end},
+		        #{person_count},
+		        #{pay},
+		       	0,
+		       	'r',
+		        SYSDATE
+		    )
+	</insert>
+	
+	<!-- 게시물 업데이트 -->
+	<update id="updatePost">
+		UPDATE travel_post
+	    	 SET
+		       id = #{id},
+		       title = #{title},
+		       content = #{content},
+		       day_start = #{day_start},
+		       day_end = #{day_end},
+		       person_count = #{person_count},
+		       pay = #{pay}
+		     WHERE id = #{id}
+		    
+	</update>
+	
+	<select id="selectScheduleByPostId" resultType="com.rm.roaming.dto.ScheduleDto">
+		SELECT * 
+		FROM travel_post_schedule 
+		WHERE
+		 post_id = #{id} ORDER BY id, order_id
+	</select>
+	
+	<!-- 파티참가 -->
+	<insert id="insertPartyJoin">
+		INSERT INTO travel_post_joinUser
+		VALUES(
+			travel_post_joinUser_seq.nextval,
+			#{post_id},
+			#{user_id},
+			SYSDATE	
+		)
+	</insert>
+	
+	<!-- 파티참가 status -->
+	<update id="updatePostStatus">
+		UPDATE travel_post_joinConfirm
+		SET
+		status = #{status}
+		WHERE
+		id = #{id}
+	</update>
+		
+	<!-- 파티 참가 리스트 -->
+	<select id="getJoinUserByPostId" resultType="com.rm.roaming.dto.JoinUserDto">
+		SELECT * FROM travel_post_joinUser
+		WHERE
+		post_id = #{id}
+	</select>
+	
+	<!-- 파티원 인원 -->
+	<select id="joinUserCount" resultType="int">
+		SELECT count(*) FROM travel_post_joinUser 
+		WHERE
+		post_id = #{id}
+	</select>
+	
+	<!-- 참가신청 -->
+	<insert id="insertJoinConfirm">
+		INSERT INTO travel_post_joinConfirm
+		VALUES(
+			travel_post_joinConfirm_seq.nextval,
+			#{post_id},
+			#{create_id},
+			#{user_id},
+			#{welcome_ment},
+			'r',
+			#{confirm_image},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 참가신청 리스틑 조회 -->
+	<select id="selectJoinConfirm" resultType="com.rm.roaming.dto.JoinConfirmDto">
+		SELECT * 
+		FROM travel_post_joinConfirm
+		WHERE
+		create_id = #{create_id} AND STATUS = 'r'
+	</select>
+	
+	<!-- 참가신청 status -->
+	<select id="selectJoinStatus" resultType="com.rm.roaming.dto.JoinConfirmDto">
+		SELECT * 
+		FROM travel_post_joinConfirm
+		WHERE
+		post_id = #{post_id} AND user_id = #{user_id}	
+	</select>
+	
+	<!-- 게시글 가져오기 -->
+	<select id="getPostList" resultType="com.rm.roaming.dto.PostDto">
+		SELECT * 
+		FROM travel_post order by id desc
+		
+	</select>
+	
+	<!-- 게시글 id로 가져오기 -->
+	<select id="getPostById" resultType="com.rm.roaming.dto.PostDto">
+		SELECT *
+		FROM travel_post
+		WHERE
+			id = #{id} 
+	</select>
+	
+	<!-- 유저 정보 가져오기 -->
+	<select id="getUserById" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * 
+		FROM rm_user 
+		WHERE
+			id = #{userId}
+	</select>
+	
+	<!-- 게시글 작성자 정보 가져오기 -->
+	<select id="getPostByCreateId" resultType="com.rm.roaming.dto.UserDto">
+		SELECT * 
+		FROM rm_user 
+		WHERE
+			id = #{create_id}
+	</select>
+	
+	<!-- 이미지 등록 -->
+	<insert id="insertPostImage">
+		INSERT INTO travel_post_image 
+		VALUES(
+			travel_post_image_seq.nextval,
+			#{post_id},
+			#{post_image},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 게시글 조회수 증가 -->
+	<update id="viewsUpdate">
+		UPDATE travel_post
+		SET
+			hit = hit + 1 WHERE id = #{id}
+	</update>
+	
+	<!-- postId로 이미지 가져오기 -->
+	<select id="getPostImageByPostId" resultType="com.rm.roaming.dto.PostImageDto">
+		SELECT * 
+		FROM travel_post_image 
+		WHERE
+			post_id = #{postId}
+	</select>
+	
+	<!-- 게시물 신고하기 -->
+	<insert id="insertReport">
+		INSERT INTO travel_post_report
+		VALUES(
+			travel_post_report_seq.nextval,
+			#{post_id},
+			#{user_id},
+			#{title},
+			#{content},
+			SYSDATE
+		)
+	</insert>
+	
+	
+	<!-- 게시물 댓글 작성하기 -->
+	<insert id="insertPostComment">
+		INSERT INTO travel_post_comment
+		VALUES(
+			travel_post_comment_seq.nextval,
+			#{post_id},
+			#{user_id},
+			#{post_comment},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 게시물 대댓글 작성하기 -->
+	<insert id="insertPostReComment">
+		INSERT INTO travel_post_re_comment
+		VALUES(
+			travel_post_re_comment_seq.nextval,
+			#{comment_id},
+			#{user_id},
+			#{re_user_id},
+			#{re_comment},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 게시물 댓글 가져오기 -->
+	<select id="getPostComment" resultType="com.rm.roaming.dto.CommentDto">
+		SELECT *
+		FROM travel_post_comment
+		WHERE post_id = #{postId}
+		ORDER BY id
+	</select>
+	
+	<!-- 게시물 리댓글 가져오기 -->
+	<select id="getPostReComment" resultType="com.rm.roaming.dto.ReCommentDto">
+		SELECT *
+		FROM travel_post_re_comment
+		WHERE comment_id = #{commentId}
+		ORDER BY id
+	</select>
+	
+	<select id="getPostCommentTotalCount" resultType="int">
+		SELECT
+		t1 + t2 total_count
+		FROM (
+			SELECT 
+			(SELECT count(*) FROM travel_post_comment WHERE post_id = #{postId}) t1, 
+			(SELECT count(*) FROM travel_post_re_comment WHERE comment_id IN(SELECT id FROM travel_post_comment WHERE post_id = #{postId})) t2
+			 FROM  dual
+			)
+	</select>
+	
+	<!-- 게시물 좋아요 -->
+	<insert id="insertLike">
+		INSERT INTO travel_post_like
+			VALUES(
+				travel_post_like_seq.nextval,
+				#{post_id},
+				#{user_id},
+				SYSDATE
+			)
+	</insert>
+	
+	<delete id="deleteLike">
+		DELETE travel_post_like
+		WHERE post_id = #{post_id} AND user_id = #{user_id}
+	</delete>
+	
+	<select id="getLikeCount" resultType="int">
+		SELECT count(*) FROM travel_post_like
+		WHERE post_id = #{post_id} AND user_id = #{user_id}
+	</select>
+	
+	<select id="getLikeTotalCount" resultType="int">
+		SELECT count(*) FROM travel_post_like
+		WHERE post_id = #{postId}
+	</select>
+	
+	<!-- 댓글 좋아요 -->
+	<insert id="insertCommentLike">
+		INSERT INTO travel_comment_like
+			VALUES(
+				travel_comment_like_seq.nextval,
+				#{comment_id},
+				#{user_id},
+				SYSDATE
+			)
+	</insert>
+	
+	<delete id="deleteCommentLike">
+		DELETE travel_comment_like
+		WHERE comment_id = #{comment_id} AND user_id = #{user_id}
+	</delete>
+	
+	<select id="getCommentLikeCount" resultType="int">
+		SELECT count(*) FROM travel_comment_like
+		WHERE comment_id = #{comment_id} AND user_id = #{user_id}
+	</select>
+	
+	<select id="getCommentLikeTotalCount" resultType="int">
+		SELECT count(*) FROM travel_comment_like
+		WHERE comment_id = #{commentId}
+	</select>
+	
+	
+	
+	
+	<!-- New 일차추가 -->
+	<insert id="insertNewDay">
+    INSERT INTO travel_post_day (id, post_id, trip_day, reg_date)
+    VALUES (
+        travel_post_day_seq.nextval,
+        #{post_id},
+        (SELECT NVL(MAX(trip_day), 0) + 1 FROM travel_post_day WHERE post_id = #{post_id}),
+        SYSDATE
+    )
+	</insert>
+
+	<!-- 일차가져오기 -->
+	<select id="selectNewDay" resultType="com.rm.roaming.dto.DayDto">
+		SELECT * FROM travel_post_day WHERE post_id = #{postId} ORDER BY trip_day
+	</select>
+	
+	<!-- 일차삭제 -->
+	<delete id="deleteDayId">
+		DELETE travel_post_day WHERE id = #{id}
+	</delete>
+	
+	<!-- 일정추가 -->
+	<insert id="insertSchedule">
+		INSERT INTO travel_post_schedule 
+			VALUES(
+			travel_post_schedule_seq.nextval,
+			#{day_id},
+			(SELECT NVL(MAX(order_no), 0) + 1 FROM travel_post_schedule WHERE day_id = #{day_id}),
+			#{trip_location},
+			#{trip_memo},
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 일정 가져오기 -->
+	<select id="selectScheduleDay_id" resultType="com.rm.roaming.dto.ScheduleDto">
+		SELECT * 
+		FROM travel_post_schedule
+		WHERE day_id = #{day_id} ORDER BY day_id, order_no
+	</select>
+	
+	<!-- 일정 조인 일차가져오기 -->
+	<select id="selectDayPostId" resultType="com.rm.roaming.dto.DayDto">
+		SELECT * 
+		FROM travel_post_day
+		WHERE post_id = #{id} ORDER BY id
+	</select>
+	
+	<!-- 일정 수정 -->
+	<update id="updateSchedule">
+		UPDATE travel_post_schedule
+		SET trip_location = #{trip_location}, trip_memo = #{trip_memo}
+		WHERE id = #{id} 	
+	</update>
+	<!-- 일정 삭제 -->
+	<delete id="deleteSchedule">
+		DELETE travel_post_schedule
+		WHERE
+		id = #{id}
+	</delete>
+	
+	
+	
+	<!-- 황준하 테스트 -->
+	<insert id="insertPostSchedule">
+		INSERT INTO test_post_schedule VALUES(
+			test_post_schedule_seq.nextval,
+			#{day_id},
+			#{order_no},
+			#{place_title},
+			#{place_location},
+			#{estimated_time},	    
+			#{trip_memo},
+			SYSDATE
+		)
+	</insert>
+	<!-- 황준하  -->
+	<select id="selectPostDayCountByPostId" resultType="int">
+		SELECT count(*) FROM travel_post_day WHERE post_id = #{post_id}
+	</select>
+	<select id="selectPostScheduleCountByPostId" resultType="int">
+		SELECT COUNT(DISTINCT day_id) FROM test_post_schedule WHERE day_id IN (SELECT id FROM travel_post_day WHERE post_id=#{post_id})
+	</select>
+</mapper>

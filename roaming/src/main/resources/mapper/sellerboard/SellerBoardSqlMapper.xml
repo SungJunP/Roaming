@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.rm.roaming.sellerboard.mapper.SellerBoardSqlMapper">
+	<select id="selectHotelCategoryList" resultType="com.rm.roaming.dto.HotelCategoryDto">
+		SELECT * FROM hotel_category
+	</select>
+	<select id="selectHotelSyscategory" resultType="com.rm.roaming.dto.HotelSyscategoryDto">
+		SELECT * FROM hotel_syscategory
+	</select>
+	<insert id="insertHotelSyscategory">
+		INSERT INTO hotel_link_syscategory VALUES(
+			hotel_link_syscategory_seq.nextval,
+			#{syscategory_id},
+			#{hotel_id}
+		)
+	</insert>
+	<insert id="insertHotel">
+		INSERT INTO hotel VALUES(
+			#{id},
+			#{seller_id},
+			#{hotel_category_id},
+			#{hotel_name},
+			#{hotel_loc},
+			#{hotel_img},
+			#{hotel_tel},
+			#{content},
+			'휴무',
+			SYSDATE
+		)
+	</insert>
+	<insert id="insertDocu">
+		INSERT INTO hotel_docu VALUES(
+			hotel_docu_seq.nextval,
+			#{hotel_id},
+			#{docu_link},
+			null,
+			'대기',
+			SYSDATE
+		)
+	</insert>
+	<select id="createHotelPk" resultType="int">
+		SELECT hotel_seq.nextval from dual
+	</select>
+	<select id="selectMyHotelList" resultType="com.rm.roaming.dto.HotelDto">
+		SELECT * FROM hotel WHERE seller_id = #{seller_id} ORDER BY id
+	</select>
+	<select id="selectMyHotelById" resultType="com.rm.roaming.dto.HotelDto">
+		SELECT * FROM hotel WHERE id = #{id}
+	</select>
+	<select id="selectMyFirstHotel" resultType="com.rm.roaming.dto.HotelDto">
+		 SELECT * FROM(
+		 SELECT a.* , ROWNUM rn from hotel a where seller_id = #{seller_id}  ORDER BY id
+		 ) WHERE rn = 1
+	</select>
+	<select id="createGroupPk" resultType="int">
+		SELECT room_group_seq.nextval from dual
+	</select>
+	<insert id="insertRoomGroup">
+		INSERT INTO room_group VALUES(
+			#{id},
+			#{hotel_id},
+			#{view_id},
+			#{room_group_name},
+			#{room_group_img},
+			#{price},
+			#{fixed_number}
+		)
+	</insert>
+	<insert id="insertRoomGroupImg">
+		INSERT INTO room_group_img VALUES(
+			room_group_img_seq.nextval,
+			#{room_group_id},
+			#{detail_img}
+		)
+	</insert>
+	<insert id="insertGroupPlusOption">
+		INSERT INTO group_plus_option VALUES(
+			group_plus_option_seq.nextval,
+			#{room_group_id},
+			#{plus_option},
+			#{price}
+		)
+	</insert>
+	<insert id="insertCustomCategory">
+	INSERT INTO custom_category VALUES(
+		custom_category_seq.nextval,
+		#{room_group_id},
+		#{category_name}
+		)
+	</insert>
+	
+	<select id="selectGroupListByHotelId" resultType="com.rm.roaming.dto.RoomGroupDto">
+		SELECT * FROM room_group WHERE hotel_id = #{hotel_id} ORDER BY id
+	</select>
+	<select id="selectGroupById"  resultType="com.rm.roaming.dto.RoomGroupDto">
+		SELECT * FROM room_group WHERE id =#{id}
+	</select>
+	<select id="selectGroupImgByRoomGroupId" resultType="com.rm.roaming.dto.RoomGroupImgDto">
+		SELECT * FROM room_group_img WHERE room_group_id = #{room_group_id}
+	</select>
+	<select id="selectFirstGroup" resultType="com.rm.roaming.dto.RoomGroupDto">
+ 		select * from 
+ 		(select b.* , ROWNUM rn FROM (select a.* from room_group a WHERE hotel_id =#{hotel_id} ORDER BY id)b) where rn =1
+		 </select>
+		 
+		 
+	<select id="selectRoomViewList" resultType="com.rm.roaming.dto.RoomViewDto">
+		SELECT * FROM room_view ORDER BY id
+	</select>
+	<insert id="insertRoom">
+		INSERT INTO room VALUES(
+			room_seq.nextval,
+			#{room_group_id},
+			#{room_number}
+		)
+	</insert>
+	<select id="selectGroupPlusOptionByRoomGroupId" resultType="com.rm.roaming.dto.GroupPlusOptionDto">
+		SELECT * FROM group_plus_option WHERE room_group_id = #{room_group_id} ORDER BY id
+	</select>
+	<select id="selectCustomCategoryByRoomGroupId" resultType="com.rm.roaming.dto.CustomCategoryDto">
+		SELECT * FROM custom_category WHERE room_group_id = #{room_group_id} ORDER BY id
+	</select>
+	<select id="selectRoomByRoomGroupId" resultType="com.rm.roaming.dto.RoomDto">
+		SELECT * FROM room WHERE room_group_id = #{room_group_id} ORDER BY id
+	</select>
+	<select id="selectViewNameByRoomViewId" resultType="com.rm.roaming.dto.RoomViewDto">
+		SELECT * FROM room_view WHERE id = #{id}
+	</select>
+	
+	<select id="selectCurrentWeekSellPrice" resultType="com.rm.roaming.dto.RoomGroupDto">
+	<![CDATA[
+	SELECT rg.room_group_name, COALESCE(SUM(res.final_price), 0) as price
+	FROM room_group rg
+	LEFT JOIN reserve res ON rg.id = res.room_group_id
+	                      AND res.reserve_date >= TRUNC(SYSDATE, 'IW') 
+	                      AND res.reserve_date < TRUNC(SYSDATE, 'IW') + 7 
+	WHERE rg.hotel_id = #{hotel_id}
+	GROUP BY rg.room_group_name
+		]]>
+	</select>
+	
+	<select id="selectCountTodayReserve" resultType="com.rm.roaming.dto.ReserveDto">
+		<![CDATA[ SELECT COUNT(r.room_group_id) AS final_price, rg.id AS room_group_id
+					FROM room_group rg
+					LEFT JOIN reserve r ON rg.id = r.room_group_id
+					    AND r.start_date <= SYSDATE
+					    AND r.end_date > SYSDATE
+					WHERE rg.hotel_id = #{hotel_id}
+					GROUP BY rg.id
+		]]>
+	</select>
+	
+	<select id="selectRoomCountByGroupId" resultType="int">
+		SELECT count(*) FROM room WHERE room_group_id = #{room_group_id}
+	</select>
+</mapper>

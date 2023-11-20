@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.rm.roaming.admin.mapper.AdminSqlMapper">
+
+<!-- 관리자 고유 ID  -->
+<select id="selectByAdminId" resultType="com.rm.roaming.dto.AdminDto">
+	SELECT * FROM admin where id = #{id}
+</select>
+
+<!-- 관리자 회원가입 -->
+<insert id="insertAdmin">
+	INSERT INTO admin VALUES(
+		admin_seq.nextval,
+		#{admin_id},
+		#{admin_pw}
+	)
+</insert>
+
+<!-- 관리자 로그인 -->
+<select id="selectByAdminIdAndPw" resultType="com.rm.roaming.dto.AdminDto">
+	SELECT * FROM admin where admin_id = #{admin_id} and admin_pw = #{admin_pw}
+</select>
+
+
+
+
+
+
+
+</mapper>

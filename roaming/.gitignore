@@ -1,0 +1,26 @@
+# 빌드 출력물
+bin/
+target/
+
+# 로그 파일
+*.log
+
+# 패키지 파일
+*.jar
+*.war
+*.ear
+
+# 이클립스 관련 파일
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.metadata/
+.idea/
+.classpath
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
