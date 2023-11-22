@@ -98,49 +98,47 @@
 
 ## 📌 주요 기능
 ### 👥 로밍 유저
-#### Main(User) - <a href="https://github.com/junehaha/roaming/wiki/Main-(User)" >상세보기 - WIKI 이동</a>
+#### Main(User) 
 - Main Page
 - 로그인 / 회원가입
 - My Page
-#### 동행 - <a href="https://github.com/junehaha/roaming/wiki/%EB%8F%99%ED%96%89" >상세보기 - WIKI 이동</a>
+#### 동행 
 - 동행 메인 페이지
 - 동행 상세 보기
 - 동행 생성 / 신청
 - 동행 대화
-#### 숙소 - <a href="https://github.com/junehaha/roaming/wiki/%EC%88%99%EC%86%8C-%EC%98%88%EC%95%BD" >상세보기 - WIKI 이동</a>
+#### 숙소 
 - 숙소 메인 페이지
 - 숙소 상세 보기
 - 숙소 예약 / 결제
 
-#### 커뮤니티 - <a href="https://github.com/junehaha/roaming/wiki/%EC%BB%A4%EB%AE%A4%EB%8B%88%ED%8B%B0" >상세보기 - WIKI 이동</a>
+#### 커뮤니티 
 - 커뮤니티 홈
 - 커뮤니티 게시물 작성 / 상세
 - 프로필 / 메시지
 
-#### 쿠폰 발급 / 포인트 샵 - <a href="https://github.com/junehaha/roaming/wiki/%EC%BF%A0%ED%8F%B0---%ED%8F%AC%EC%9D%B8%ED%8A%B8-%EC%83%B5" >상세보기 - WIKI 이동</a>
+#### 쿠폰 발급 / 포인트 샵 
 - 쿠폰 목록 페이지 / 발급
 - 포인트 샵 홈
 - 상품 상세 보기
 - 상품 구매
-#### 짐 배달 서비스 - <a href="https://github.com/junehaha/roaming/wiki/%EC%A7%90-%EC%84%9C%EB%B9%84%EC%8A%A4" >상세보기 - WIKI 이동</a> 
+#### 짐 배달 서비스 
 - 짐 서비스 홈
 - 짐 서비스 신청 / 결제
 
-#### 고객센터 - <a href="https://github.com/junehaha/roaming/wiki/%EA%B3%A0%EA%B0%9D%EC%84%BC%ED%84%B0" >상세보기 - WIKI 이동</a> 
-- 공지사항 / 자주하는 질문
+#### 고객센터 
 - 묻고 답하기
 - 문의글 보기 / 쓰기
 
 ---- 
 ###  🏨 로밍 파트너
-#### 파트너 - <a href="https://github.com/junehaha/roaming/wiki/%ED%8C%8C%ED%8A%B8%EB%84%88" >상세보기 - WIKI 이동</a> 
+#### 파트너 
 - 파트너 로그인 / 가입
 - 숙소 등록
 - 숙소 관리 / 통계
 ----
 ###  🛠 로밍 관리자
-#### 관리자 - <a href="https://github.com/junehaha/roaming/wiki/%EA%B4%80%EB%A6%AC%EC%9E%90" >상세보기 - WIKI 이동</a> 
-- 관리자 대시보드
+#### 관리자 
 - 판매자(파트너) 관리
 - 쿠폰 / 포인트 샵 관리
 - 고객센터 관리
